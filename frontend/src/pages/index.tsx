@@ -10,19 +10,32 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(""); // 1. Add error state
 
   const runCode = async () => {
     setLoading(true);
+    setOutput("");
+    setError(""); // clear previous error
+
     const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/run/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code, input }),
     });
-    console.log(res)
+
     const data = await res.json();
-    setOutput(data.output);
+
+    if (data.error) {
+      setError(data.error);     // 2. Handle errors
+      setOutput("");
+    } else {
+      setOutput(data.output);
+      setError("");
+    }
+
     setLoading(false);
   };
+
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4">
@@ -50,7 +63,12 @@ export default function Home() {
           </Button>
           <div className="mt-4 bg-black p-4 rounded-lg min-h-[120px]">
             <h2 className="text-lg font-semibold">Output:</h2>
-            <pre className="whitespace-pre-wrap text-green-400">{output}</pre>
+            {output && (
+              <pre className="whitespace-pre-wrap text-green-400">{output}</pre>
+            )}
+            {error && (
+              <pre className="whitespace-pre-wrap text-red-500">{error}</pre>
+            )}
           </div>
         </div>
       </div>
